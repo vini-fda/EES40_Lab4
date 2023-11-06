@@ -1,11 +1,11 @@
 % EES-40 2023 - Controle Moderno Lab4 
 % Controlador utilizando placa USB NI-6009 e MATLAB R2016a
 % Script para projetar controle discreto do kit: DLQR com filtro de Kalman (KF) = DLQG  
-% controle estocástico DLQG com realimentação de estimativa do estado AUMENTADO 
-% estado aumentado com  x_i: ação integral para rastrear referência degrau em malha fechada 
+% controle estocÃ¡stico DLQG com realimentaÃ§Ã£o de estimativa do estado AUMENTADO 
+% estado aumentado com  x_i: aÃ§Ã£o integral para rastrear referÃªncia degrau em malha fechada 
 % pseudomedida zk=x_i usada no KF
-% realização no espaço de estado.
-% rodar após o script de projeto ter rodado 
+% realizaÃ§Ã£o no espaÃ§o de estado.
+% rodar apÃ³s o script de projeto ter rodado 
 clear all; 
 clc;
 load Kdlqr % DLQR gain
@@ -17,20 +17,20 @@ Gaugd=Gaugssd.B(:,2);
 Caugd=Gaugssd.C(1,:);
 C_xid=Gaugssd.C(2,:);
 
-disp('Início');
+disp('InÃ­cio');
 daqreset;
-DeviceID = 'Dev2'; % Confirmar número do Dev no software da National
+DeviceID = 'Dev2'; % Confirmar nÃºmero do Dev no software da National
 
 %% Setup:
 % Tempos:
 T=Ts; % intervalo de amostragem em segundos adotado no projeto do controlador
-Tempo_Experiencia = 30; % Tempo total da experiência em segundos
+Tempo_Experiencia = 30; % Tempo total da experiÃªncia em segundos
 
 % Ganho do AmpOp
 Ganho_Fisico = 5; % Hardware comercial configurado na placa borne do AmpOp 
-                  % os valores têm tolerância na fabricação
+                  % os valores tÃªm tolerÃ¢ncia na fabricaÃ§Ã£o
 
-% Inicialização:
+% InicializaÃ§Ã£o:
 t = 0; % Tempo inicial
 time = [];
 u = [];     % DLQR control
@@ -59,8 +59,8 @@ rdf=rd;              % filter tuning parameter
 % Placa NI-6009:
 s = daq.createSession('ni');
 s.Rate = 1/T;
-addAnalogInputChannel(s,DeviceID,0:1,'Voltage'); % 2 entradas analógicas do A/D
-addAnalogOutputChannel(s,DeviceID,0:1,'Voltage'); % 2 saídas analógicas do D/A
+addAnalogInputChannel(s,DeviceID,0:1,'Voltage'); % 2 entradas analÃ³gicas do A/D
+addAnalogOutputChannel(s,DeviceID,0:1,'Voltage'); % 2 saÃ­das analÃ³gicas do D/A
 %% Loop de controle:
 tic; % start
 while t < Tempo_Experiencia 
@@ -74,8 +74,8 @@ while t < Tempo_Experiencia
     
     % Amostrando os sinais na entrada do conversor A/D
     In = inputSingleScan(s); 
-    yk = In(:,1); % Sinal de saída da planta = ai0
-    ref = In(:,2); % Sinal de referência para o sistema = ai1
+    yk = In(:,1); % Sinal de saÃ­da da planta = ai0
+    ref = In(:,2); % Sinal de referÃªncia para o sistema = ai1
     
     ek=ref-yk;     % output tracking error
     zk=zk+Ts*ek;   % updated zoh discretization of integral of ek = pseudomeasurement
@@ -90,16 +90,16 @@ while t < Tempo_Experiencia
     % DLQG stochastic control
     uk=-Kdlqr*xhat_updt;
     
-    % Níveis de saturação do sinal de controle em -15V e 15V
+    % NÃ­veis de saturaÃ§Ã£o do sinal de controle em -15V e 15V
     uk = min(uk,15);
     uk = max(-15,uk);
   
-    % Adequação do sinal de saída do DAC limitado de 0 a 5 V que deve ser
-    % utilizado com o AmpOp na configuração diferencial com ganho externo
+    % AdequaÃ§Ã£o do sinal de saÃ­da do DAC limitado de 0 a 5 V que deve ser
+    % utilizado com o AmpOp na configuraÃ§Ã£o diferencial com ganho externo
     % Vo = (R2/R1)*(Vb - Va), onde Va = a0 e Vb = a1
-    if uk > 0 % Sinal de saída do AmpOp deve ser positivo
+    if uk > 0 % Sinal de saÃ­da do AmpOp deve ser positivo
         a1 = uk/Ganho_Fisico; a0 = 0;
-       else % Sinal de saída do AmpOp deve ser negativo
+       else % Sinal de saÃ­da do AmpOp deve ser negativo
         a1 = 0; a0 = -uk/Ganho_Fisico;
     end  % entrada para planta fica no intervalo -3V a 3V
     
@@ -125,19 +125,19 @@ while t < Tempo_Experiencia
     pause(T-toc);
     tic;
 end
-% Zerando as saídas do conversor D/A:
+% Zerando as saÃ­das do conversor D/A:
 outputSingleScan(s,[0,0]);
 disp('Acabou');
 
 % Liberando o AD/DA
 release(s);
 
-%% Desenhando gráficos
+%% Desenhando grÃ¡ficos
 save inov.mat inov
 save Sinov.mat Sinov
 figure(1);
 plot(time,y,'-r',time,r,'-.k');
-title('Sinais de referência e saída do servo');
+title('Sinais de referÃªncia e saÃ­da do servo');
 grid; xlabel('t(s)'); ylabel('y(V) e r(V)');
 
 figure(2);
